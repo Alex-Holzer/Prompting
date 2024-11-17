@@ -176,4 +176,34 @@ print(results_df)
 
 
 
+import pandas as pd
+
+def save_dataframe_to_csv(
+    dataframe: pd.DataFrame,
+    file_path: str,
+    include_index: bool = False,
+    encoding: str = "utf-8",
+    delimiter: str = ","
+) -> None:
+    """
+    Saves a pandas DataFrame to a CSV file.
+
+    Parameters:
+        dataframe (pd.DataFrame): The DataFrame to save.
+        file_path (str): The file path for the output CSV file.
+        include_index (bool): Whether to include the DataFrame index in the CSV file. Defaults to False.
+        encoding (str): Encoding format for the CSV file. Defaults to "utf-8".
+        delimiter (str): Delimiter for the CSV file. Defaults to ",".
+
+    Returns:
+        None
+    """
+    try:
+        dataframe.to_csv(file_path, index=include_index, encoding=encoding, sep=delimiter)
+        print(f"DataFrame successfully saved to '{file_path}'")
+    except Exception as e:
+        print(f"An error occurred while saving the DataFrame to CSV: {e}")
+
+
+
 ```
