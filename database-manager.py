@@ -1,20 +1,22 @@
 from typing import Any, List, Optional, Tuple
 import pyodbc
 import pandas as pd
+import getpass
 
 class DatabaseManager:
     """
     A class to manage database connections, execute queries, and handle results.
     """
     
-    def __init__(self, connection_string: str):
+    def __init__(self, connection_string_template: str):
         """
-        Initialize DatabaseManager with a connection string.
+        Initialize DatabaseManager with a connection string template.
         
         Parameters:
-            connection_string (str): The connection string for the database
+            connection_string_template (str): The connection string template for the database,
+            which will be formatted with the password obtained from the user.
         """
-        self.connection_string = connection_string
+        self.connection_string_template = connection_string_template
         self.connection = None
         self.results_df = None
 
@@ -25,8 +27,14 @@ class DatabaseManager:
         Returns:
             bool: True if connection successful, False otherwise
         """
+        # Obtain password from the user
+        password = getpass.getpass(prompt='Enter database password: ')
+        
+        # Format the connection string with the password
+        connection_string = self.connection_string_template.format(password=password)
+        
         try:
-            self.connection = pyodbc.connect(self.connection_string)
+            self.connection = pyodbc.connect(connection_string)
             return True
         except pyodbc.Error as e:
             print(f"Connection error: {e}")
@@ -86,12 +94,12 @@ class DatabaseManager:
         Returns:
             Optional[pd.DataFrame]: DataFrame containing query results, or None if query fails
         """
-        if not self.connection:
-            if not self.connect():
-                return None
+        if not self.connect():
+            return None
 
         try:
-            with self.connection.cursor() as cursor:
+            cursor = self.connection.cursor()
+            try:
                 if parameters:
                     cursor.execute(sql_query, parameters)
                 else:
@@ -101,49 +109,16 @@ class DatabaseManager:
                 columns = [column[0] for column in cursor.description]
                 data = cursor.fetchall()
             
-            # Convert to pandas DataFrame and store in instance variable
-            self.results_df = pd.DataFrame.from_records(data, columns=columns)
-            return self.results_df
-        
+                # Convert to pandas DataFrame and store in instance variable
+                self.results_df = pd.DataFrame.from_records(data, columns=columns)
+                return self.results_df
+            finally:
+                cursor.close()
         except pyodbc.Error as e:
             print(f"Query execution error: {e}")
             return None
-
-    def save_results_to_csv(
-        self,
-        file_path: str,
-        include_index: bool = False,
-        encoding: str = "utf-8",
-        delimiter: str = ","
-    ) -> bool:
-        """
-        Saves the current results DataFrame to a CSV file.
-
-        Parameters:
-            file_path (str): The file path for the output CSV file
-            include_index (bool): Whether to include the DataFrame index
-            encoding (str): Encoding format for the CSV file
-            delimiter (str): Delimiter for the CSV file
-
-        Returns:
-            bool: True if save successful, False otherwise
-        """
-        if self.results_df is None:
-            print("No results to save. Execute a query first.")
-            return False
-
-        try:
-            self.results_df.to_csv(
-                file_path,
-                index=include_index,
-                encoding=encoding,
-                sep=delimiter
-            )
-            print(f"Results successfully saved to '{file_path}'")
-            return True
-        except Exception as e:
-            print(f"Error saving results to CSV: {e}")
-            return False
+        finally:
+            self.close()
 
     def close(self) -> None:
         """
@@ -157,7 +132,8 @@ class DatabaseManager:
         """
         Enables use of context manager (with statement).
         """
-        self.connect()
+        if not self.connect():
+            raise Exception("Failed to establish database connection.")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -165,3 +141,50 @@ class DatabaseManager:
         Ensures connection is closed when exiting context.
         """
         self.close()
+
+
+
+# Define your connection string template with a placeholder for the password
+connection_string_template = (
+    "DRIVER={{ODBC Driver 17 for SQL Server}};"
+    "SERVER=your_server;"
+    "DATABASE=your_database;"
+    "UID=your_username;"
+    "PWD={password}"
+)
+
+# Initialize the DatabaseManager with the connection string template
+db_manager = DatabaseManager(connection_string_template)
+
+# Build your SQL query
+sql_query = db_manager.build_sql_query(
+    select_clause="SELECT *",
+    from_clause="FROM your_table",
+    where_conditions=["column_name = 'value'"],
+    order_by_column="column_name",
+    allowed_sort_columns=["column_name"]
+)
+
+# Execute the query and retrieve the results
+results_df = db_manager.execute_query(sql_query)
+
+# Check if results were returned and display them
+if results_df is not None:
+    print(results_df.head())
+else:
+    print("Query execution failed.")
+
+
+
+with DatabaseManager(connection_string_template) as db_manager:
+    sql_query = db_manager.build_sql_query(
+        select_clause="SELECT *",
+        from_clause="FROM your_table",
+        where_conditions=["column_name = 'value'"]
+    )
+    results_df = db_manager.execute_query(sql_query)
+
+    if results_df is not None:
+        print(results_df.head())
+    else:
+        print("Query execution failed.")
