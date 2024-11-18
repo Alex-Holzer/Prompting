@@ -172,6 +172,7 @@ class DatabaseManager:
         self.close_connection()
 
 
+
 import logging
 
 # Configure root logger
@@ -188,10 +189,45 @@ connection_string_template = (
     "PWD={password};"
 )
 
+# Use the DatabaseManager within a context manager
+with DatabaseManager(connection_string_template) as db_manager:
+    try:
+        # First query
+        sql_query1_template = "SELECT * FROM {table_name} FETCH FIRST {limit} ROWS ONLY"
+        sql_query1 = db_manager.build_sql_query(
+            sql_query1_template,
+            table_name='table1',
+            limit=10
+        )
+        results_df1 = db_manager.execute_query(sql_query1)
+        print("First query results:")
+        print(results_df1.head())
+
+        # Second query
+        sql_query2_template = "SELECT {columns} FROM {table_name} WHERE {column_name} = ?"
+        sql_query2 = db_manager.build_sql_query(
+            sql_query2_template,
+            columns='column1, column2',
+            table_name='table2',
+            column_name='status'
+        )
+        parameters2 = ('active',)
+        results_df2 = db_manager.execute_query(sql_query2, parameters=parameters2)
+        print("Second query results:")
+        print(results_df2.head())
+
+        # Additional queries can be added similarly
+
+    except (DatabaseConnectionError, DatabaseQueryError, ValueError) as e:
+        print(f"An error occurred: {e}")
+    # No need to manually close the connection; it's handled by the context manager
+
+
+
+
 # Initialize the DatabaseManager
 db_manager = DatabaseManager(connection_string_template)
 
-# Perform multiple queries
 try:
     # First query
     sql_query1_template = "SELECT * FROM {table_name} FETCH FIRST {limit} ROWS ONLY"
@@ -219,54 +255,8 @@ try:
 
     # Additional queries can be added similarly
 
+except (DatabaseConnectionError, DatabaseQueryError, ValueError) as e:
+    print(f"An error occurred: {e}")
 finally:
     # Close the connection when done
     db_manager.close_connection()
-
-
-
-import logging
-
-# Configure root logger
-logging.basicConfig(level=logging.WARNING)
-
-# Define your connection string template
-connection_string_template = (
-    "DRIVER={{IBM DB2 ODBC DRIVER}};"
-    "HOSTNAME=your_hostname;"
-    "PORT=your_port;"
-    "DATABASE=your_database;"
-    "PROTOCOL=TCPIP;"
-    "UID=your_username;"
-    "PWD={password};"
-)
-
-# Use the DatabaseManager within a context manager
-with DatabaseManager(connection_string_template) as db_manager:
-    # First query
-    sql_query1_template = "SELECT * FROM {table_name} FETCH FIRST {limit} ROWS ONLY"
-    sql_query1 = db_manager.build_sql_query(
-        sql_query1_template,
-        table_name='table1',
-        limit=10
-    )
-    results_df1 = db_manager.execute_query(sql_query1)
-    print("First query results:")
-    print(results_df1.head())
-
-    # Second query
-    sql_query2_template = "SELECT {columns} FROM {table_name} WHERE {column_name} = ?"
-    sql_query2 = db_manager.build_sql_query(
-        sql_query2_template,
-        columns='column1, column2',
-        table_name='table2',
-        column_name='status'
-    )
-    parameters2 = ('active',)
-    results_df2 = db_manager.execute_query(sql_query2, parameters=parameters2)
-    print("Second query results:")
-    print(results_df2.head())
-
-    # Additional queries can be added similarly
-
-# The connection is automatically closed when exiting the 'with' block
