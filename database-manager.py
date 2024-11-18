@@ -5,6 +5,15 @@ from typing import Any, List, Optional, Tuple
 import pandas as pd
 import pyodbc
 
+
+class DatabaseConnectionError(Exception):
+    """Custom exception for database connection errors."""
+
+
+class DatabaseQueryError(Exception):
+    """Custom exception for database query execution errors."""
+
+
 class DatabaseManager:
     """
     A class to manage database connections, execute queries, and handle results.
