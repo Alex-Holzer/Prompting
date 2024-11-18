@@ -5,15 +5,6 @@ from typing import Any, List, Optional, Tuple
 import pandas as pd
 import pyodbc
 
-
-class DatabaseConnectionError(Exception):
-    """Custom exception for database connection errors."""
-
-
-class DatabaseQueryError(Exception):
-    """Custom exception for database query execution errors."""
-
-
 class DatabaseManager:
     """
     A class to manage database connections, execute queries, and handle results.
@@ -38,6 +29,7 @@ class DatabaseManager:
         self.logger = logging.getLogger(__name__)
         self.password = self._get_password()
         self._configure_logging()
+        self.connection: Optional[pyodbc.Connection] = None  # Persistent connection
 
     def _get_password(self) -> str:
         """
@@ -62,7 +54,7 @@ class DatabaseManager:
 
     def _connect(self) -> pyodbc.Connection:
         """
-        Establishes a connection to the database.
+        Establishes a persistent connection to the database, if not already connected.
 
         Returns:
             pyodbc.Connection: The established database connection.
@@ -70,20 +62,33 @@ class DatabaseManager:
         Raises:
             DatabaseConnectionError: If the connection fails.
         """
+        if self.connection is not None:
+            self.logger.debug("Using existing database connection.")
+            return self.connection
+
         connection_string = self.connection_string_template.format(
             password=self.password
         )
 
         try:
-            connection = pyodbc.connect(
+            self.connection = pyodbc.connect(
                 connection_string,
                 timeout=self.timeout,
             )
             self.logger.info("Database connection established.")
-            return connection
+            return self.connection
         except pyodbc.Error as e:
             self.logger.error("Failed to connect to the database.")
             raise DatabaseConnectionError("Failed to connect to the database.") from e
+
+    def close_connection(self) -> None:
+        """
+        Closes the database connection if it is open.
+        """
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            self.logger.info("Database connection closed.")
 
     def build_sql_query(
         self,
@@ -152,9 +157,6 @@ class DatabaseManager:
         except pyodbc.Error as e:
             self.logger.error("Failed to execute the query.")
             raise DatabaseQueryError("Failed to execute the query.") from e
-        finally:
-            connection.close()
-            self.logger.info("Database connection closed.")
 
     def __enter__(self) -> 'DatabaseManager':
         """
@@ -163,49 +165,40 @@ class DatabaseManager:
         Returns:
             DatabaseManager: The current instance.
         """
+        self._connect()  # Ensure connection is established at the start
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         """
-        Context manager exit method.
+        Context manager exit method. Ensures the connection is closed.
         """
-        pass  # No persistent connection to close here
+        self.close_connection()
 
-
-
-
-import logging
-
-# Configure root logger
-logging.basicConfig(level=logging.INFO)
-
-# Define your connection string template with a placeholder for the password
-connection_string_template = (
-    "DRIVER={{ODBC Driver 17 for SQL Server}};"
-    "SERVER=your_server;"
-    "DATABASE=your_database;"
-    "UID=your_username;"
-    "PWD={password}"
-)
 
 # Initialize the DatabaseManager
 db_manager = DatabaseManager(connection_string_template)
 
-# Build your SQL query
-sql_query = db_manager.build_sql_query(
-    select_clause="SELECT *",
-    from_clause="FROM your_table",
-    where_conditions=["column_name = ?"],
-    order_by_clause="ORDER BY column_name DESC"
-)
-
-# Parameters for the query
-parameters = ('value',)
-
-# Execute the query and retrieve the results
+# Use the manager for multiple queries
 try:
-    results_df = db_manager.execute_query(sql_query, parameters=parameters)
-    if results_df is not None:
-        print(results_df.head())
-except (DatabaseConnectionError, DatabaseQueryError) as e:
-    print(f"An error occurred: {e}")
+    # First Query
+    sql_query_1 = db_manager.build_sql_query(
+        select_clause="SELECT *",
+        from_clause="FROM your_table",
+        where_conditions=["column_name = ?"],
+        order_by_clause="ORDER BY column_name DESC"
+    )
+    parameters_1 = ('value1',)
+    results_df_1 = db_manager.execute_query(sql_query_1, parameters=parameters_1)
+    print(results_df_1.head())
+
+    # Second Query
+    sql_query_2 = db_manager.build_sql_query(
+        select_clause="SELECT COUNT(*)",
+        from_clause="FROM another_table",
+    )
+    results_df_2 = db_manager.execute_query(sql_query_2)
+    print(results_df_2)
+
+finally:
+    # Close the connection manually
+    db_manager.close_connection()
