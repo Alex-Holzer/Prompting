@@ -14,22 +14,6 @@ class DatabaseQueryError(Exception):
     """Custom exception for database query execution errors."""
 
 
-import getpass
-import logging
-from typing import Any, Optional, Tuple
-
-import pandas as pd
-import pyodbc
-
-
-class DatabaseConnectionError(Exception):
-    """Custom exception for database connection errors."""
-
-
-class DatabaseQueryError(Exception):
-    """Custom exception for database query execution errors."""
-
-
 class DatabaseManager:
     """
     A class to manage database connections, execute queries, and handle results.
@@ -75,7 +59,9 @@ class DatabaseManager:
         )
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+
+        # Set logging level to WARNING to suppress INFO messages
+        self.logger.setLevel(logging.WARNING)
 
     def _connect(self) -> pyodbc.Connection:
         """
@@ -99,21 +85,30 @@ class DatabaseManager:
             self.logger.info("Database connection established.")
             return connection
         except pyodbc.Error as e:
-            self.logger.error("Failed to connect to the database.")
+            self.logger.error(f"Failed to connect to the database. Error: {e}")
             raise DatabaseConnectionError("Failed to connect to the database.") from e
 
-    def build_sql_query(self, query: str) -> str:
+    def build_sql_query(self, query_template: str, **kwargs) -> str:
         """
-        Accepts any light SQL query string.
+        Builds an SQL query using an f-string template and provided keyword arguments.
 
         Parameters:
-            query (str): The SQL query to execute.
+            query_template (str): The SQL query template as an f-string.
+            **kwargs: Keyword arguments to be substituted into the query.
 
         Returns:
-            str: The SQL query.
+            str: The formatted SQL query.
         """
-        self.logger.debug(f"Built SQL query: {query}")
-        return query.strip()
+        try:
+            query = query_template.format(**kwargs)
+            self.logger.debug(f"Built SQL query: {query}")
+            return query.strip()
+        except KeyError as e:
+            self.logger.error(f"Missing query parameter: {e}")
+            raise ValueError(f"Missing query parameter: {e}") from e
+        except Exception as e:
+            self.logger.error(f"Error building SQL query: {e}")
+            raise ValueError(f"Error building SQL query: {e}") from e
 
     def execute_query(
         self,
@@ -155,8 +150,9 @@ class DatabaseManager:
                 return self.results_df
             finally:
                 cursor.close()
+                self.logger.info("Cursor closed.")
         except pyodbc.Error as e:
-            self.logger.error("Failed to execute the query.")
+            self.logger.error(f"Failed to execute the query. Error: {e}")
             raise DatabaseQueryError("Failed to execute the query.") from e
         finally:
             connection.close()
@@ -181,27 +177,44 @@ class DatabaseManager:
 import logging
 
 # Configure root logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
-# Define your connection string template with a placeholder for the password
+# Define your connection string template with double curly braces around the driver name
 connection_string_template = (
-    "DRIVER={{ODBC Driver 17 for SQL Server}};"
-    "SERVER=your_server;"
+    "DRIVER={{IBM DB2 ODBC DRIVER}};"
+    "HOSTNAME=your_hostname;"
+    "PORT=your_port;"
     "DATABASE=your_database;"
+    "PROTOCOL=TCPIP;"
     "UID=your_username;"
-    "PWD={password}"
+    "PWD={password};"
 )
 
 # Initialize the DatabaseManager
 db_manager = DatabaseManager(connection_string_template)
 
-# Build your SQL query
-sql_query = db_manager.build_sql_query("SELECT * FROM your_table LIMIT 10")
+# Define variables for the query
+table_name = 'your_table'
+limit = 10
+column_name = 'your_column'
+value = 'some_value'
+
+# Build your SQL query using f-string formatting
+sql_query_template = "SELECT * FROM {table_name} WHERE {column_name} = '{value}' FETCH FIRST {limit} ROWS ONLY"
+
+# Build the SQL query
+sql_query = db_manager.build_sql_query(
+    sql_query_template,
+    table_name=table_name,
+    column_name=column_name,
+    value=value,
+    limit=limit
+)
 
 # Execute the query and retrieve the results
 try:
     results_df = db_manager.execute_query(sql_query)
     if results_df is not None:
         print(results_df.head())
-except (DatabaseConnectionError, DatabaseQueryError, RuntimeError) as e:
+except (DatabaseConnectionError, DatabaseQueryError, RuntimeError, ValueError) as e:
     print(f"An error occurred: {e}")
