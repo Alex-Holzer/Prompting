@@ -182,3 +182,267 @@ Here's a robust, fully-fledged template for solving programming tasks:
 ---
 
 Following this enhanced guide ensures your prompts maximize the potential of advanced language models, leading to high-quality, reliable outputs suitable for professional-grade software development and data science tasks.
+
+
+Here’s a more structured, deeply expanded “perfect prompt” guide—reorganized into four phases and enriched with extra techniques, patterns, templates and anti‑patterns to help you squeeze every drop of performance from today’s most powerful LLMs.
+
+---
+
+## 📈 Phase 0: Preparation & Strategy
+
+Before you even write a word of prompt, invest a few minutes to set yourself up for success:
+
+1. **Clarify Your Goal**  
+   - ✏️ *What exactly do you want?* (code, explanation, refactor, design doc...)  
+   - 🎯 *Why are you doing it?* (learning, production, debugging, prototyping)
+
+2. **Gather & Sanitize Context**  
+   - ✅ Only include what’s strictly necessary.  
+   - 📂 If you have long docs or codebases, break them into bite‑sized chunks or use a retrieval layer.  
+
+3. **Define Constraints & Success Criteria**  
+   - 🚦 Performance (Big O, memory)  
+   - 🔒 Security (input validation, safe APIs)  
+   - 📐 Style (PEP 8, company style guide)  
+   - ✅ How will you verify? Unit tests? Peer review?  
+
+---
+
+## 🛠 Phase 1: Core Prompt Design
+
+### 1.1. Explicit Instruction & Scope  
+- **“Tell me to…” vs. “Write code that…”**  
+- **Scope your ask**: one function / one class / one module.  
+
+> **Bad:** “Solve binary tree problems.”  
+> **Good:** “Implement a Python 3.11 class `BinarySearchTree` with insert, delete, and traversal methods.”
+
+### 1.2. Role‑Based Framing  
+- System & Role Messages (GPT‑4 style):  
+  ``` 
+  System: “You are a senior Python engineer.”  
+  User:   “...”  
+  ```  
+- Persona injection: “As a data‑engineering mentor, explain….”
+
+### 1.3. Environment & Dependencies  
+- **Language** + **Version**: Python 3.11, Node 18, Scala 2.13  
+- **Libraries / Frameworks**: Pandas, FastAPI, TensorFlow 2.x  
+- **Execution context**: Azure Function, AWS Lambda, local Jupyter  
+
+### 1.4. Input / Output Contract  
+- **Schema**: JSON, CSV, plain text, Markdown, mermaid.js  
+- **Formats**: “Return only valid JSON.”  
+- **Strict parsability**: wrap code in markdown code fences, use tag markers.
+
+---
+
+## 🔄 Phase 2: Reasoning Patterns & Creativity Control
+
+### 2.1. Chain‑of‑Thought Variants  
+- **SCoT (Structured)**: “1. Pseudocode 2. Implementation 3. Tests”  
+- **Scratchpad**: “Let me think step by step…”  
+- **Reflection**: “After coding, evaluate time & space complexities.”
+
+### 2.2. Temperature / Max Tokens / Top‑p  
+- For **deterministic code**: Temperature = 0.0  
+- For **creative brainstorming**: Temperature ≥ 0.7  
+- Control output length if you need summaries.
+
+### 2.3. Few‑Shot & One‑Shot Examples  
+- **Positive example**: shows ideal answer  
+- **Negative example**: shows common pitfall to avoid  
+
+```text
+Example 1: Good
+Input: [2, 3, 4]
+Output: 6
+
+Example 2: Bad
+Input: [2, 3, 4]
+Output: 2, 4  # (we want sum, not list)
+```
+
+### 2.4. Retrieval‑Augmented Generation (RAG)  
+- If relying on large specs or docs, embed + retrieve relevant passages  
+- Prompt: “Using the following excerpt from the Pandas docs, show how to pivot…”
+
+---
+
+## 🧪 Phase 3: Quality, Testing & Self‑Critique
+
+### 3.1. Edge‑Case Enumeration  
+- **Empty** / **Null** / **Large** / **Unsupported** inputs  
+- **Performance bounds**: N up to 10⁶?  
+
+### 3.2. Security & Validation  
+- “Validate user input to prevent SQL injection.”  
+- “Use parameterized queries.”
+
+### 3.3. Automated Tests in Prompt  
+- Ask for unit tests with `pytest` or `unittest`.  
+- Provide assertions and test harness.
+
+### 3.4. RCI (Recursive Criticism & Improvement)  
+1. **Generate code**  
+2. **Self‑review**: “Spot inefficiencies, refactor.”  
+3. **Refine**: “Produce a final, improved version.”
+
+> **Prompt snippet:**  
+> “Step 1: Write code. Step 2: List 3 potential improvements. Step 3: Provide revised code.”
+
+---
+
+## 📊 Phase 4: Evaluation & Iteration
+
+### 4.1. Measure Success  
+- **Functional correctness**: All tests pass.  
+- **Code quality**: Lint score, cyclomatic complexity.  
+- **Performance**: Benchmarks.  
+
+### 4.2. Store & Reuse  
+- Maintain a **Prompt Registry** with versions, notes, and outcomes.  
+- Reuse high‑performing templates.
+
+### 4.3. Anti‑Patterns to Avoid  
+| Anti‑Pattern                    | Why It Fails                              |
+|---------------------------------|-------------------------------------------|
+| Vague requests (“Do something”) | Leads to unfocused, incorrect output     |
+| Overloading context            | Exceeds token limit, confuses the model   |
+| No success criteria            | Impossible to evaluate output             |
+| High temperature for code      | Generates unpredictable, buggy code       |
+
+---
+
+## 🎯 Ultimate Prompt Template
+
+```text
+System: You are a senior [language] engineer.
+User: 
+"""
+Task: <Clear objective, e.g. “Implement X”>
+Context: <Env, versions, libraries>
+Input/Output: <Schema, formats>
+Constraints: <Performance, security, style>
+Examples: 
+    Good: …  
+    Bad:  …
+Steps: 
+    1. Outline pseudocode 
+    2. Write implementation 
+    3. Generate 3 unit tests 
+    4. Self‑review & optimize 
+    5. Provide final code only
+Output format: <e.g. “Only code in a markdown fence”>
+"""
+```
+
+—  
+
+By following this four‑phase framework and leveraging the expanded techniques above, you’ll be able to craft **deterministic**, **high‑quality**, and **maintainable** prompts that unlock the full reasoning power of GPT‑4 and future models.
+
+
+
+
+**Here are three end‑to‑end prompt examples**, each following our four‑phase framework and “Ultimate Prompt Template” structure. You can drop these straight into your chat setup or API call.
+
+---
+
+### 🟢 Prompt Example 1: Core DS Function
+
+```text
+System: You are a senior Python engineer mentoring a junior developer.
+User:
+"""
+Task: Implement a Python 3.11 function `filter_even_sum` that computes the sum of even integers in a list.
+Context: 
+- Language: Python 3.11  
+- Environment: local script, standard library only  
+Input/Output:  
+- Input: List[int]  
+- Output: int  
+Constraints:  
+- Time complexity: O(n)  
+- Handle empty list by returning 0  
+- Follow PEP 8 style  
+Examples:  
+  Good:  
+    Input: [2, 3, 4] → Output: 6  
+  Bad:  
+    Input: [2, 3, 4] → Output: [2, 4]  # we want a sum, not a list  
+Steps:  
+  1. Outline pseudocode  
+  2. Write the implementation  
+  3. Create 3 pytest unit tests (typical, boundary, empty)  
+  4. Self‑review for edge cases & optimize  
+  5. Provide final code only  
+Output format: Only the complete Python function in a markdown code fence.
+"""
+```
+
+---
+
+### 🟢 Prompt Example 2: PySpark Aggregation in Databricks
+
+```text
+System: You are an expert PySpark engineer at a large-scale analytics firm.
+User:
+"""
+Task: Write a PySpark function `aggregate_user_events` to compute total event counts per user.
+Context:  
+- Environment: Databricks notebook (Spark 3.4, Python 3.11)  
+- Data source: Delta table named `user_events` with schema (user_id STRING, event_type STRING, timestamp TIMESTAMP)  
+Input/Output:  
+- Input: None (reads directly from the table)  
+- Output: Spark DataFrame with columns (user_id STRING, total_events LONG)  
+Constraints:  
+- Use DataFrame API only (no SQL strings)  
+- Must scale to >100 million rows  
+- Use caching to optimize performance  
+Examples:  
+  Good: returns a DataFrame where each `user_id` is unique  
+  Bad: collects data to driver or uses RDDs  
+Steps:  
+  1. Show pseudocode plan  
+  2. Implement the function in PySpark  
+  3. Include inline comments explaining each transformation  
+  4. Write three test scenarios using `pytest` & `pyspark.sql.testing`  
+  5. Self‑review for performance (caching, partitioning)  
+Output format: Only the PySpark function code in markdown.
+"""
+```
+
+---
+
+### 🟢 Prompt Example 3: FastAPI Endpoint with Tests & RCI
+
+```text
+System: You are a senior backend engineer specializing in Python and FastAPI.
+User:
+"""
+Task: Create a FastAPI endpoint `POST /items/` that accepts JSON `{ "name": str, "price": float }`, stores it in-memory, and returns the created item with an `id`.
+Context:
+- Language: Python 3.11  
+- Framework: FastAPI 0.95, Uvicorn  
+- No external database; use a global list for storage  
+Input/Output:
+- Input: JSON body `{ "name": ..., "price": ... }`
+- Output: JSON `{ "id": int, "name": str, "price": float }`
+Constraints:
+- Validate `name` is non‑empty, `price` ≥ 0  
+- Return 400 on invalid input  
+- Follow PEP 8 and FastAPI best practices  
+Examples:
+  Good:  
+    Request `{ "name": "Book", "price": 9.99 }` → Response `{ "id": 1, "name": "Book", "price": 9.99 }`  
+  Bad:  
+    Accepts negative price or missing fields  
+Steps:
+  1. Outline pseudocode and endpoints  
+  2. Implement FastAPI app with Pydantic model  
+  3. Write three `pytest` test functions (valid, invalid name, negative price)  
+  4. Self‑review: security, edge cases, code style  
+  5. Provide only the final Python code file  
+Output format: Only the complete `main.py` content fenced as Python.
+"""
+```
