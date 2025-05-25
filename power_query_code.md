@@ -36,6 +36,9 @@ Aufgabe: Schreibe den folgenden M Code komplett neu, sodass er sich strikt an di
 
 ---
 
+📤 Ausgabe
+Gib nur den umgeschriebenen M Code im beschriebenen Stil zurück, mit allen Best Practices angewendet. Keine zusätzlichen Erklärungen oder Meta-Kommentare.
+
 📥 **Eingabe**  
 
 
