@@ -37,7 +37,6 @@ Aufgabe: Schreibe den folgenden M Code komplett neu, sodass er sich strikt an di
 ---
 
 📥 **Eingabe**  
-```m
-<Füge hier den ursprünglichen Power Query M Code ein>
+
 
 ```
