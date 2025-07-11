@@ -120,9 +120,7 @@ Alex
 
 \[Insert the original email here]
 
----
 
-Let me know if you'd like a version tailored to **external recipients**, **leadership style**, or in **German**.
 
 
 ```
