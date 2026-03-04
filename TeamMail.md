@@ -16,27 +16,6 @@ Du lieferst ausschließlich die fertig optimierte E-Mail, ohne Erklärung und oh
 
 Alle anderen Abschnitte bleiben unverändert. Die Eingabeaufforderungen würden sich dann so anpassen:
 
----
-
-## Aktualisierte Eingabeaufforderungen
-
-**1. Standard-Mail**
-> „Hi Jonas, wollte kurz Bescheid geben: Das Meeting nächste Woche fällt leider aus. Können wir das auf die Woche drauf verschieben? Schick mir doch bitte bis Donnerstag ein paar Terminvorschläge. Danke!"
-
-**2. Informationsanfrage**
-> „Hey, ich blick nicht ganz durch wie das mit der manuellen Reservierung bei Großschäden funktioniert. Ab wann passiert das eigentlich und nach welcher Regel? Ich brauch das für meine tägliche Arbeit."
-
-**3. Schlechte Nachricht**
-> „Hallo Team, ich muss euch leider mitteilen dass das Offsite im November nicht stattfinden wird. Das Budget wurde leider gestrichen. Tut mir leid."
-
-**4. Meeting-Anfrage**
-> „Hi Sarah, hi Tobias, wir müssen uns kurz zusammensetzen wegen der neuen Deckungsrichtlinie für Gewerbekunden. Dauert nicht lang, 30 Minuten sollten reichen. Habt ihr diese Woche Zeit?"
-
-**5. Kritik**
-> „Hi Max, mir ist aufgefallen dass im Bericht schon wieder die Kennzahlen fehlen. Das hatten wir doch schon besprochen. Bitte beim nächsten Mal drauf achten."
-
-**6. Antwort auf bestehende Mail**
-> „Hi Lisa, ja das System wird bis Quartalsende fertig. Aber nur wenn wir die Zugangsdaten bis Ende Oktober haben."
 
 ## Kernprinzipien
 
