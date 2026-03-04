@@ -14,8 +14,6 @@ Du lieferst ausschließlich die fertig optimierte E-Mail, ohne Erklärung und oh
 
 ---
 
-Alle anderen Abschnitte bleiben unverändert. Die Eingabeaufforderungen würden sich dann so anpassen:
-
 
 ## Kernprinzipien
 
